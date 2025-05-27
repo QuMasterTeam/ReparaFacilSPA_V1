@@ -6,12 +6,12 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.3.12</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/> 
 	</parent>
 	<groupId>ReparaFacilV1</groupId>
 	<artifactId>ReparaFacilV1</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>ReparaFacilV1</name>
+	<name>ReparaFacilV1</name> <!--Poto-->
 	<description>ReparaFacilV1</description>
 	<url/>
 	<licenses>
@@ -55,6 +55,7 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+<<<<<<< HEAD
 		<!-- Oracle JDBC Driver -->
     <dependency>
     <groupId>com.oracle.database.jdbc</groupId>
@@ -76,6 +77,30 @@
     <version>19.8.0.0</version>
     </dependency>
 
+=======
+		
+		<!-- Oracle JDBC Driver -->
+		<dependency>
+			<groupId>com.oracle.database.jdbc</groupId>
+			<artifactId>ojdbc8</artifactId>
+			<version>19.8.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.oracle.database.security</groupId>
+			<artifactId>oraclepki</artifactId>
+			<version>19.8.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.oracle.database.security</groupId>
+			<artifactId>osdt_core</artifactId>
+			<version>19.8.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.oracle.database.security</groupId>
+			<artifactId>osdt_cert</artifactId>
+			<version>19.8.0.0</version>
+		</dependency>
+>>>>>>> 8968b3132250abb9045ab66ad26a1a923f3a3b44
 	</dependencies>
 
 	<build>
@@ -107,4 +132,8 @@
 		</plugins>
 	</build>
 
+<<<<<<< HEAD
 </project>
+=======
+</project>
+>>>>>>> 8968b3132250abb9045ab66ad26a1a923f3a3b44
