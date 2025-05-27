@@ -11,7 +11,7 @@
 	<groupId>ReparaFacilV1</groupId>
 	<artifactId>ReparaFacilV1</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>ReparaFacilV1</name> <!--Poto-->
+	<name>ReparaFacilV1</name>
 	<description>ReparaFacilV1</description>
 	<url/>
 	<licenses>
@@ -40,11 +40,27 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+		<!-- Oracle JDBC Driver -->
 		<dependency>
-			<groupId>com.mysql</groupId>
-			<artifactId>mysql-connector-j</artifactId>
-			<scope>runtime</scope>
+			<groupId>com.oracle.database.jdbc</groupId>
+			<artifactId>ojdbc8</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>com.oracle.database.security</groupId>
+			<artifactId>oraclepki</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.oracle.database.security</groupId>
+			<artifactId>osdt_core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.oracle.database.security</groupId>
+			<artifactId>osdt_cert</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -55,52 +71,6 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-<<<<<<< HEAD
-		<!-- Oracle JDBC Driver -->
-    <dependency>
-    <groupId>com.oracle.database.jdbc</groupId>
-    <artifactId>ojdbc8</artifactId>
-    <version>19.8.0.0</version>
-    </dependency>
-    <dependency>
-    <groupId>com.oracle.database.security</groupId>
-    <artifactId>oraclepki</artifactId>
-    <version>19.8.0.0</version>
-    </dependency>
-    <dependency>
-    <groupId>com.oracle.database.security</groupId>
-    <artifactId>osdt_core</artifactId>      <version>19.8.0.0</version>
-    </dependency>
-    <dependency>
-    <groupId>com.oracle.database.security</groupId>
-    <artifactId>osdt_cert</artifactId>
-    <version>19.8.0.0</version>
-    </dependency>
-
-=======
-		
-		<!-- Oracle JDBC Driver -->
-		<dependency>
-			<groupId>com.oracle.database.jdbc</groupId>
-			<artifactId>ojdbc8</artifactId>
-			<version>19.8.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.oracle.database.security</groupId>
-			<artifactId>oraclepki</artifactId>
-			<version>19.8.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.oracle.database.security</groupId>
-			<artifactId>osdt_core</artifactId>
-			<version>19.8.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.oracle.database.security</groupId>
-			<artifactId>osdt_cert</artifactId>
-			<version>19.8.0.0</version>
-		</dependency>
->>>>>>> 8968b3132250abb9045ab66ad26a1a923f3a3b44
 	</dependencies>
 
 	<build>
@@ -132,8 +102,4 @@
 		</plugins>
 	</build>
 
-<<<<<<< HEAD
 </project>
-=======
-</project>
->>>>>>> 8968b3132250abb9045ab66ad26a1a923f3a3b44
