@@ -28,5 +28,5 @@ public class Servicio {
     private String categoria;
 
     @Column
-    private Integer duracionEstimada; // en minutos
+    private Integer duracionEstimada; // en minutos
 }
