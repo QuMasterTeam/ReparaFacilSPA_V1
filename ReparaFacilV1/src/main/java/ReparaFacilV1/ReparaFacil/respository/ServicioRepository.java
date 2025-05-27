@@ -1,4 +1,4 @@
-package main.java.ReparaFacilV1.ReparaFacil.respository;
+package main.java.ReparaFacilV1.ReparaFacil.respository;.respository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.respository;
