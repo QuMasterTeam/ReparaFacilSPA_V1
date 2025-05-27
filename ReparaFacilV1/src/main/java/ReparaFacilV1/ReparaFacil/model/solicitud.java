@@ -1,10 +1,12 @@
-package main.java.ReparaFacilV1.ReparaFacil.model;
+package ReparaFacilV1.ReparaFacil.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -30,20 +32,30 @@ public class Solicitud {
     private Tecnico tecnico;
 
     @Column(nullable=false)
+    @CreationTimestamp
     private LocalDateTime fechaSolicitud;
 
     @Column
     private LocalDateTime fechaProgramada;
 
-    @Column(length = 20)
-    private String estado; // pendiente, en progreso, completado...
+    @Column(length = 20, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EstadoSolicitud estado;
 
     @Column(length = 255)
     private String comentarioCliente;
 
-    @Column
-    private Double costoEstimado;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal costoEstimado;
 
-    @Column
-    private Double costoFinal;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal costoFinal;
+
+    // Enum para estados de solicitud
+    public enum EstadoSolicitud {
+        PENDIENTE,
+        EN_PROGRESO,
+        COMPLETADO,
+        CANCELADO
+    }
 }

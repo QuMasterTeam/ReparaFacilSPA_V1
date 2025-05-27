@@ -1,9 +1,11 @@
-package main.java.ReparaFacilV1.ReparaFacil.model;
+package ReparaFacilV1.ReparaFacil.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
 
 @Entity
 @Data
@@ -15,18 +17,31 @@ public class Servicio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(length = 100, nullable=false)
+    @Column(length = 100, nullable=false, unique=true)
     private String nombreServicio;
 
     @Column(length = 255)
     private String descripcion;
 
-    @Column(nullable=false)
-    private Double precioBase;
+    @Column(nullable=false, precision = 10, scale = 2)
+    private BigDecimal precioBase;
 
-    @Column(length = 50)
-    private String categoria;
+    @Column(length = 50, nullable=false)
+    @Enumerated(EnumType.STRING)
+    private CategoriaServicio categoria;
 
     @Column
-    private Integer duracionEstimada; // en minutos
+    private Integer duracionEstimada; // en minutos
+
+    // Enum para categorías de servicio
+    public enum CategoriaServicio {
+        ELECTRODOMESTICOS,
+        PLOMERIA,
+        ELECTRICIDAD,
+        CARPINTERIA,
+        PINTURA,
+        LIMPIEZA,
+        JARDINERIA,
+        OTROS
+    }
 }
