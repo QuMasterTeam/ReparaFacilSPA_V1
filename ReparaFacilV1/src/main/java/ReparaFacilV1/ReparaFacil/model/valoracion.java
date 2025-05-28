@@ -1,4 +1,4 @@
-package ReparaFacilV1.ReparaFacil.model;
+package ReparaFacilV1.ReparaFacil.Valoracion.model;
 
 import java.time.LocalDateTime;
 

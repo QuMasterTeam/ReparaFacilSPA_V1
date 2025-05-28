@@ -33,6 +33,16 @@ public class Servicio {
     @Column
     private Integer duracionEstimada; // en minutos
 
+    public Servicio(Integer id, String nombreServicio, String descripcion, BigDecimal precioBase,
+            CategoriaServicio categoria, Integer duracionEstimada) {
+        this.id = id;
+        this.nombreServicio = nombreServicio;
+        this.descripcion = descripcion;
+        this.precioBase = precioBase;
+        this.categoria = categoria;
+        this.duracionEstimada = duracionEstimada;
+    }
+
     // Enum para categorías de servicio
     public enum CategoriaServicio {
         ELECTRODOMESTICOS,
