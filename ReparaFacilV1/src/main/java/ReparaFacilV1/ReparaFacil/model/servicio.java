@@ -1,11 +1,18 @@
 package ReparaFacilV1.ReparaFacil.model;
 
-import jakarta.persistence.*;
+import java.math.BigDecimal;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 @Entity
 @Data
@@ -33,15 +40,6 @@ public class Servicio {
     @Column
     private Integer duracionEstimada; // en minutos
 
-    public Servicio(Integer id, String nombreServicio, String descripcion, BigDecimal precioBase,
-            CategoriaServicio categoria, Integer duracionEstimada) {
-        this.id = id;
-        this.nombreServicio = nombreServicio;
-        this.descripcion = descripcion;
-        this.precioBase = precioBase;
-        this.categoria = categoria;
-        this.duracionEstimada = duracionEstimada;
-    }
 
     // Enum para categorías de servicio
     public enum CategoriaServicio {
