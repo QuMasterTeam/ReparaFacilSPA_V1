@@ -1,4 +1,4 @@
-package main.java.ReparaFacilV1.ReparaFacil.model;
+package ReparaFacilV1.ReparaFacil.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
