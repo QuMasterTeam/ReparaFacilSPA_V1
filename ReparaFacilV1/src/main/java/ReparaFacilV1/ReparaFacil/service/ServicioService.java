@@ -1,4 +1,4 @@
-package main.java.ReparaFacilV1.ReparaFacil.service;
+ppackage main.java.ReparaFacilV1.ReparaFacil.service;
 
 import java.util.List;
 
@@ -28,5 +28,13 @@ public class ServicioService {
     public Servicio fetchById(Long id){
 
         return servicioRepository.findById(id).get();
+    }
+
+    public Servicio save(Servicio servicio){
+        return servicioRepository.save(servicio);
+    }
+
+    public void delete(Long id){
+        servicioRepository.deleteById(id);
     }
 }
