@@ -12,8 +12,12 @@ import ReparaFacilV1.ReparaFacil.model.Servicio;
 @Respository
 public interface ServicioRepository extends JpaRepository<Servicio, Cliente, Pago, Solicitud, Tecnico, Valoracion, Long> {
 
-    public static List<Servicio> findALL();
+    public static List<Servicio> findAll();
 
     public Object findById(Long id);
+
+    public void deleteById(Long id);
+
+    public Servicio save(Servicio servicio);
 
     }
