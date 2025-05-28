@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import ReparaFacilV1.ReparaFacil.model.Solicitud;
+
 @Entity
 @Data
 @NoArgsConstructor

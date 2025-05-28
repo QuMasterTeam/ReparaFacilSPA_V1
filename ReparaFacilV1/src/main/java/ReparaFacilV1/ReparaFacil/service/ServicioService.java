@@ -1,4 +1,4 @@
-package main.java.ReparaFacilV1.ReparaFacil.service;
+package java.ReparaFacilV1.ReparaFacil.service;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class ServicioService {
 
     public List<Servicio> fetchALL() {
 
-        return servicioRepository.findALL();
+        return servicioRepository.findAll();
 
     }
 
