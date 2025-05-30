@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReparaFacilSPA.cl - Servicios de Reparación</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-tools"></i> ReparaFacilSPA.cl</h1>
+            <p>Sistema de Gestión de Servicios de Reparación Técnica</p>
+        </div>
+
+        <div class="stats" id="statsContainer">
+            <div class="stats-grid" id="statsGrid">
+                <!-- Las estadísticas se cargarán aquí -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-container">
+                <input type="text" 
+                       class="search-input" 
+                       id="searchInput" 
+                       placeholder="Buscar servicios por cliente, dispositivo o problema...">
+                <button class="btn btn-primary" onclick="searchServicios()">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+                <button class="btn btn-secondary" onclick="loadServiciosByEstado('AGENDADO')">
+                    <i class="fas fa-calendar"></i> Agendados
+                </button>
+                <button class="btn btn-primary" onclick="loadAllServicios()">
+                    <i class="fas fa-list"></i> Todos
+                </button>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="estadoFilter">Estado</label>
+                    <select id="estadoFilter" onchange="filterServicios()">
+                        <option value="">Todos los estados</option>
+                        <option value="AGENDADO">Agendado</option>
+                        <option value="EN_REVISION">En Revisión</option>
+                        <option value="EN_REPARACION">En Reparación</option>
+                        <option value="ESPERANDO_REPUESTOS">Esperando Repuestos</option>
+                        <option value="COMPLETADO">Completado</option>
+                        <option value="ENTREGADO">Entregado</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="tipoFilter">Tipo de Dispositivo</label>
+                    <select id="tipoFilter" onchange="filterServicios()">
+                        <option value="">Todos los tipos</option>
+                        <option value="Smartphone">Smartphone</option>
+                        <option value="Laptop">Laptop</option>
+                        <option value="Tablet">Tablet</option>
+                        <option value="Computador">Computador</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="emailFilter">Email Cliente</label>
+                    <input type="email" id="emailFilter" placeholder="cliente@email.com" onchange="filterServicios()">
+                </div>
+
+                <div class="filter-group">
+                    <label for="prioridadFilter">Prioridad</label>
+                    <select id="prioridadFilter" onchange="filterServicios()">
+                        <option value="">Todas las prioridades</option>
+                        <option value="BAJA">Baja</option>
+                        <option value="NORMAL">Normal</option>
+                        <option value="ALTA">Alta</option>
+                        <option value="URGENTE">Urgente</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-success" onclick="showNewServiceForm()">
+                <i class="fas fa-plus"></i> Nuevo Servicio
+            </button>
+            <button class="btn btn-info" onclick="showConsultaForm()">
+                <i class="fas fa-search"></i> Consultar por Email
+            </button>
+        </div>
+
+        <div id="errorContainer"></div>
+        <div id="serviciosContainer">
+            <div class="loading">
+                <i class="fas fa-spinner"></i>
+                <div>Cargando servicios...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para nuevo servicio -->
+    <div id="newServiceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus"></i> Nuevo Servicio de Reparación</h3>
+                <span class="close" onclick="closeModal('newServiceModal')">&times;</span>
+            </div>
+            <form id="newServiceForm" class="service-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombreCliente">Nombre Completo *</label>
+                        <input type="text" id="nombreCliente" name="nombreCliente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono *</label>
+                        <input type="tel" id="telefono" name="telefono" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tipoDispositivo">Tipo de Dispositivo *</label>
+                        <select id="tipoDispositivo" name="tipoDispositivo" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="Smartphone">Smartphone</option>
+                            <option value="Laptop">Laptop</option>
+                            <option value="Tablet">Tablet</option>
+                            <option value="Computador">Computador</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="marca">Marca *</label>
+                        <input type="text" id="marca" name="marca" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="modelo">Modelo *</label>
+                    <input type="text" id="modelo" name="modelo" required>
+                </div>
+                <div class="form-group">
+                    <label for="descripcionProblema">Descripción del Problema *</label>
+                    <textarea id="descripcionProblema" name="descripcionProblema" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="fechaAgendada">Fecha y Hora Agendada *</label>
+                    <input type="datetime-local" id="fechaAgendada" name="fechaAgendada" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Agendar Servicio
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('newServiceModal')">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para consulta por email -->
+    <div id="consultaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-search"></i> Consultar Servicios por Email</h3>
+                <span class="close" onclick="closeModal('consultaModal')">&times;</span>
+            </div>
+            <div class="consulta-form">
+                <div class="form-group">
+                    <label for="emailConsulta">Email del Cliente</label>
+                    <input type="email" id="emailConsulta" placeholder="cliente@email.com">
+                </div>
+                <button class="btn btn-primary" onclick="consultarPorEmail()">
+                    <i class="fas fa-search"></i> Consultar
+                </button>
+            </div>
+            <div id="resultadosConsulta" class="resultados-consulta"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

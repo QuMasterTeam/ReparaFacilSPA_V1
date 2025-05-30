@@ -1,0 +1,29 @@
+-- Crear índices para mejorar el rendimiento
+CREATE INDEX idx_usuarios_username ON USUARIOS(USERNAME);
+CREATE INDEX idx_usuarios_email ON USUARIOS(EMAIL);
+CREATE INDEX idx_usuarios_activo ON USUARIOS(ACTIVO);
+CREATE INDEX idx_usuarios_fecha_creacion ON USUARIOS(FECHA_CREACION);
+
+-- Insertar un usuario administrador por defecto (opcional)
+INSERT INTO USUARIOS (USERNAME, EMAIL, PASSWORD, NOMBRE, APELLIDO, ROL, ACTIVO) 
+VALUES (
+    'admin', 
+    'admin@modaurbanaspa.com', 
+    '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- password: "password"
+    'Administrador', 
+    'Sistema', 
+    'ADMIN', 
+    1
+);
+
+-- Comentarios sobre la tabla
+COMMENT ON TABLE USUARIOS IS 'Tabla de usuarios del sistema de catálogo';
+COMMENT ON COLUMN USUARIOS.USERNAME IS 'Nombre de usuario único';
+COMMENT ON COLUMN USUARIOS.EMAIL IS 'Correo electrónico único';
+COMMENT ON COLUMN USUARIOS.PASSWORD IS 'Contraseña encriptada con BCrypt';
+COMMENT ON COLUMN USUARIOS.ROL IS 'Rol del usuario: ADMIN, EMPRENDEDOR, CLIENTE';
+COMMENT ON COLUMN USUARIOS.ACTIVO IS 'Estado de la cuenta: 1=Activa, 0=Inactiva';
+COMMENT ON COLUMN USUARIOS.INTENTOS_LOGIN IS 'Número de intentos de login fallidos';
+COMMENT ON COLUMN USUARIOS.CUENTA_BLOQUEADA IS 'Estado de bloqueo: 1=Bloqueada, 0=No bloqueada';
+
+COMMIT;
