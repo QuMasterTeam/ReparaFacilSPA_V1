@@ -35,11 +35,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-        <!-- DEPENDENCIAS HATEOAS -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-hateoas</artifactId>
-        </dependency>
+    
         <!-- DEPENDENCIAS spring doc -->
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -67,6 +63,12 @@
             <groupId>com.oracle.database.security</groupId>
             <artifactId>osdt_cert</artifactId>
             <version>19.8.0.0</version>
+        </dependency>
+        <!-- Dependencias Datafaker -->
+        <dependency>
+            <groupId>net.datafaker</groupId>
+            <artifactId>datafaker</artifactId>
+            <version>2.4.2</version>
         </dependency>
 
         <!-- Lombok -->
