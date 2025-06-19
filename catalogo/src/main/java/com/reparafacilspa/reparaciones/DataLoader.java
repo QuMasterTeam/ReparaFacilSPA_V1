@@ -10,10 +10,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 @Profile("dev")
 @Component
@@ -109,13 +110,14 @@ public class DataLoader implements CommandLineRunner {
             cliente.setRol(User.UserRole.CLIENTE);
             cliente.setActivo(true);
             
-            // Fechas de creación variadas (últimos 6 meses)
-            Date fechaCreacion = faker.date().past(180, TimeUnit.DAYS);
+            // Fechas de creación variadas (últimos 6 meses) - MÉTODO SEGURO
+            Date fechaCreacion = generatePastDate(180);
             cliente.setFechaCreacion(fechaCreacion);
             
             // Algunos con último login reciente
             if (random.nextBoolean()) {
-                cliente.setUltimoLogin(faker.date().past(30, TimeUnit.DAYS));
+                Date ultimoLogin = generatePastDate(30);
+                cliente.setUltimoLogin(ultimoLogin);
             }
             
             cliente.setIntentosLogin(0);
@@ -194,12 +196,12 @@ public class DataLoader implements CommandLineRunner {
             servicio.setModelo(modelo);
             servicio.setDescripcionProblema(problema + ". " + faker.lorem().sentence());
             
-            // Fechas
-            Date fechaCreacion = faker.date().past(90, TimeUnit.DAYS);
+            // Fechas - MÉTODO SEGURO SIN WARNINGS
+            Date fechaCreacion = generatePastDate(90);
             servicio.setFechaCreacion(fechaCreacion);
             
             // Fecha agendada (normalmente después de la creación)
-            Date fechaAgendada = faker.date().between(fechaCreacion, new Date());
+            Date fechaAgendada = generateDateBetween(fechaCreacion, new Date());
             servicio.setFechaAgendada(fechaAgendada);
             
             // Estado aleatorio con lógica
@@ -219,14 +221,14 @@ public class DataLoader implements CommandLineRunner {
             if (estado == ServicioReparacion.EstadoReparacion.EN_REPARACION ||
                 estado == ServicioReparacion.EstadoReparacion.COMPLETADO ||
                 estado == ServicioReparacion.EstadoReparacion.ENTREGADO) {
-                servicio.setFechaInicioReparacion(faker.date().between(fechaAgendada, new Date()));
+                servicio.setFechaInicioReparacion(generateDateBetween(fechaAgendada, new Date()));
             }
             
             if (estado == ServicioReparacion.EstadoReparacion.COMPLETADO ||
                 estado == ServicioReparacion.EstadoReparacion.ENTREGADO) {
                 Date fechaInicio = servicio.getFechaInicioReparacion() != null ? 
                     servicio.getFechaInicioReparacion() : fechaAgendada;
-                servicio.setFechaFinReparacion(faker.date().between(fechaInicio, new Date()));
+                servicio.setFechaFinReparacion(generateDateBetween(fechaInicio, new Date()));
             }
             
             // Costos
@@ -236,7 +238,7 @@ public class DataLoader implements CommandLineRunner {
             if (estado == ServicioReparacion.EstadoReparacion.COMPLETADO ||
                 estado == ServicioReparacion.EstadoReparacion.ENTREGADO) {
                 // Costo final puede variar ±20% del estimado
-                double variacion = 0.8 + (random.nextDouble() * 0.4); // 0.8 a 1.2
+                double variacion = 0.8 + (new Random().nextDouble() * 0.4); // 0.8 a 1.2
                 BigDecimal costoFinal = costoBase.multiply(new BigDecimal(variacion));
                 servicio.setCostoFinal(costoFinal);
             }
@@ -257,5 +259,29 @@ public class DataLoader implements CommandLineRunner {
             
             servicioReparacionRepository.save(servicio);
         }
+    }
+    
+    /**
+     * Generar fecha en el pasado sin usar APIs deprecadas
+     * @param daysAgo número de días en el pasado
+     * @return Date en el pasado
+     */
+    private Date generatePastDate(int daysAgo) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime past = now.minusDays(new Random().nextInt(daysAgo));
+        return Date.from(past.atZone(ZoneId.systemDefault()).toInstant());
+    }
+    
+    /**
+     * Generar fecha entre dos fechas sin usar APIs deprecadas
+     * @param startDate fecha inicial
+     * @param endDate fecha final
+     * @return Date entre las dos fechas
+     */
+    private Date generateDateBetween(Date startDate, Date endDate) {
+        long startTime = startDate.getTime();
+        long endTime = endDate.getTime();
+        long randomTime = startTime + (long) (new Random().nextDouble() * (endTime - startTime));
+        return new Date(randomTime);
     }
 }
