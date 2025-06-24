@@ -1,3 +1,4 @@
+
 * {
     margin: 0;
     padding: 0;
@@ -6,7 +7,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    background: linear-gradient(135deg, #0D47A1 0%, #1565C0 100%);
     min-height: 100vh;
     color: #333;
 }
@@ -20,7 +21,7 @@ body {
 .header {
     text-align: center;
     margin-bottom: 40px;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(236, 239, 241, 0.95);
     padding: 30px;
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
@@ -28,22 +29,44 @@ body {
 }
 
 .header h1 {
-    color: #2c3e50;
+    color: #0D47A1;
     font-size: 3rem;
     margin-bottom: 10px;
-    background: linear-gradient(45deg, #28a745, #20c997);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .header p {
-    color: #6c757d;
+    color: #546E7A;
     font-size: 1.2rem;
 }
 
+/* Nueva sección Sobre Nosotros */
+.about-section {
+    background: rgba(236, 239, 241, 0.95);
+    padding: 30px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.about-section h2 {
+    color: #0D47A1;
+    font-size: 2rem;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.about-section p {
+    color: #546E7A;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    text-align: justify;
+    margin: 0 auto;
+    max-width: 900px;
+}
+
 .controls {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(236, 239, 241, 0.95);
     padding: 25px;
     border-radius: 15px;
     margin-bottom: 30px;
@@ -61,7 +84,7 @@ body {
 
 .search-input {
     padding: 12px 20px;
-    border: 2px solid #e1e8ed;
+    border: 2px solid #0D47A1;
     border-radius: 25px;
     font-size: 16px;
     transition: all 0.3s ease;
@@ -70,8 +93,8 @@ body {
 
 .search-input:focus {
     outline: none;
-    border-color: #28a745;
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    border-color: #FF6D00;
+    box-shadow: 0 0 0 3px rgba(255, 109, 0, 0.1);
 }
 
 .btn {
@@ -90,33 +113,39 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(45deg, #28a745, #20c997);
+    background: #FF6D00;
     color: white;
 }
 
 .btn-primary:hover {
+    background: #E65100;
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 10px 25px rgba(255, 109, 0, 0.3);
 }
 
 .btn-secondary {
-    background: linear-gradient(45deg, #6c757d, #495057);
+    background: #546E7A;
     color: white;
 }
 
 .btn-secondary:hover {
+    background: #455A64;
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(108, 117, 125, 0.3);
+    box-shadow: 0 10px 25px rgba(84, 110, 122, 0.3);
 }
 
 .btn-success {
-    background: linear-gradient(45deg, #28a745, #34ce57);
+    background: #FF6D00;
     color: white;
 }
 
 .btn-info {
-    background: linear-gradient(45deg, #17a2b8, #138496);
+    background: #0D47A1;
     color: white;
+}
+
+.btn-info:hover {
+    background: #1565C0;
 }
 
 .btn-sm {
@@ -138,14 +167,14 @@ body {
 
 .filter-group label {
     font-weight: 600;
-    color: #2c3e50;
+    color: #0D47A1;
     font-size: 14px;
 }
 
 .filter-group select,
 .filter-group input {
     padding: 10px;
-    border: 2px solid #e1e8ed;
+    border: 2px solid #0D47A1;
     border-radius: 10px;
     font-size: 14px;
     transition: border-color 0.3s ease;
@@ -154,7 +183,7 @@ body {
 .filter-group select:focus,
 .filter-group input:focus {
     outline: none;
-    border-color: #28a745;
+    border-color: #FF6D00;
 }
 
 .action-buttons {
@@ -165,7 +194,7 @@ body {
 }
 
 .stats {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(236, 239, 241, 0.95);
     padding: 20px;
     border-radius: 15px;
     margin-bottom: 30px;
@@ -182,10 +211,10 @@ body {
 .stat-card {
     text-align: center;
     padding: 20px;
-    background: linear-gradient(135deg, #28a745, #20c997);
+    background: #0D47A1;
     color: white;
     border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(40, 167, 69, 0.3);
+    box-shadow: 0 5px 20px rgba(13, 71, 161, 0.3);
 }
 
 .stat-number {
@@ -207,7 +236,7 @@ body {
 }
 
 .service-card {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(236, 239, 241, 0.95);
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
@@ -222,7 +251,8 @@ body {
 }
 
 .service-header {
-    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    background: #0D47A1;
+    color: white;
     padding: 15px 20px;
     display: flex;
     justify-content: space-between;
@@ -243,17 +273,17 @@ body {
     letter-spacing: 0.5px;
 }
 
-.badge-info { background: #17a2b8; color: white; }
-.badge-warning { background: #ffc107; color: #212529; }
-.badge-primary { background: #007bff; color: white; }
-.badge-secondary { background: #6c757d; color: white; }
-.badge-success { background: #28a745; color: white; }
-.badge-danger { background: #dc3545; color: white; }
-.badge-light { background: #f8f9fa; color: #495057; }
+.badge-info { background: #0D47A1; color: white; }
+.badge-warning { background: #FF6D00; color: white; }
+.badge-primary { background: #1565C0; color: white; }
+.badge-secondary { background: #546E7A; color: white; }
+.badge-success { background: #4CAF50; color: white; }
+.badge-danger { background: #F44336; color: white; }
+.badge-light { background: #ECEFF1; color: #546E7A; }
 
 .service-id {
     font-weight: bold;
-    color: #6c757d;
+    color: white;
     font-size: 14px;
 }
 
@@ -264,7 +294,7 @@ body {
 .service-title {
     font-size: 1.3rem;
     font-weight: bold;
-    color: #2c3e50;
+    color: #0D47A1;
     margin-bottom: 15px;
     display: flex;
     align-items: center;
@@ -272,14 +302,14 @@ body {
 }
 
 .service-client {
-    background: rgba(40, 167, 69, 0.1);
+    background: rgba(13, 71, 161, 0.1);
     padding: 12px;
     border-radius: 10px;
     margin-bottom: 15px;
 }
 
 .service-client strong {
-    color: #28a745;
+    color: #0D47A1;
     font-size: 1.1rem;
 }
 
@@ -288,7 +318,7 @@ body {
     gap: 15px;
     margin-top: 8px;
     font-size: 14px;
-    color: #6c757d;
+    color: #546E7A;
 }
 
 .service-problem {
@@ -296,21 +326,21 @@ body {
 }
 
 .service-problem strong {
-    color: #dc3545;
+    color: #FF6D00;
     display: block;
     margin-bottom: 5px;
 }
 
 .service-problem p {
-    background: rgba(220, 53, 69, 0.1);
+    background: rgba(255, 109, 0, 0.1);
     padding: 10px;
     border-radius: 8px;
-    color: #721c24;
+    color: #546E7A;
     font-style: italic;
 }
 
 .service-dates {
-    background: rgba(0, 123, 255, 0.1);
+    background: rgba(236, 239, 241, 0.7);
     padding: 12px;
     border-radius: 10px;
     margin-bottom: 15px;
@@ -322,7 +352,7 @@ body {
     gap: 8px;
     margin-bottom: 5px;
     font-size: 14px;
-    color: #495057;
+    color: #546E7A;
 }
 
 .date-info:last-child {
@@ -330,32 +360,32 @@ body {
 }
 
 .service-tech {
-    background: rgba(255, 193, 7, 0.1);
+    background: rgba(255, 109, 0, 0.1);
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 15px;
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #856404;
+    color: #0D47A1;
 }
 
 .service-cost {
-    background: rgba(40, 167, 69, 0.1);
+    background: rgba(13, 71, 161, 0.1);
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 15px;
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #155724;
+    color: #0D47A1;
     font-weight: 600;
 }
 
 .service-actions {
     margin-top: 15px;
     padding-top: 15px;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid #ECEFF1;
     display: flex;
     gap: 10px;
 }
@@ -370,13 +400,14 @@ body {
     text-align: center;
     padding: 60px;
     font-size: 1.2rem;
-    color: #6c757d;
+    color: #546E7A;
 }
 
 .loading i {
     font-size: 3rem;
     margin-bottom: 20px;
     animation: spin 1s linear infinite;
+    color: #FF6D00;
 }
 
 @keyframes spin {
@@ -387,17 +418,18 @@ body {
 .no-services {
     text-align: center;
     padding: 60px;
-    color: #6c757d;
+    color: #546E7A;
 }
 
 .no-services i {
     font-size: 4rem;
     margin-bottom: 20px;
     opacity: 0.5;
+    color: #0D47A1;
 }
 
 .error {
-    background: linear-gradient(45deg, #dc3545, #c82333);
+    background: #F44336;
     color: white;
     padding: 20px;
     border-radius: 15px;
@@ -406,7 +438,7 @@ body {
 }
 
 .success {
-    background: linear-gradient(45deg, #28a745, #20c997);
+    background: #4CAF50;
     color: white;
     padding: 20px;
     border-radius: 15px;
@@ -428,7 +460,7 @@ body {
 }
 
 .modal-content {
-    background-color: #fefefe;
+    background-color: #ECEFF1;
     margin: 5% auto;
     padding: 0;
     border-radius: 20px;
@@ -438,7 +470,7 @@ body {
 }
 
 .modal-header {
-    background: linear-gradient(45deg, #28a745, #20c997);
+    background: #0D47A1;
     color: white;
     padding: 20px;
     border-radius: 20px 20px 0 0;
@@ -468,6 +500,7 @@ body {
 
 .service-form {
     padding: 30px;
+    background: #ECEFF1;
 }
 
 .form-row {
@@ -484,7 +517,7 @@ body {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #2c3e50;
+    color: #0D47A1;
 }
 
 .form-group input,
@@ -492,18 +525,19 @@ body {
 .form-group textarea {
     width: 100%;
     padding: 12px;
-    border: 2px solid #e1e8ed;
+    border: 2px solid #0D47A1;
     border-radius: 10px;
     font-size: 16px;
     transition: border-color 0.3s ease;
+    background: white;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #28a745;
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    border-color: #FF6D00;
+    box-shadow: 0 0 0 3px rgba(255, 109, 0, 0.1);
 }
 
 .form-actions {
@@ -512,25 +546,27 @@ body {
     justify-content: flex-end;
     margin-top: 30px;
     padding-top: 20px;
-    border-top: 1px solid #e9ecef;
+    border-top: 1px solid #546E7A;
 }
 
 .consulta-form {
     padding: 20px 30px;
+    background: #ECEFF1;
 }
 
 .resultados-consulta {
     max-height: 400px;
     overflow-y: auto;
     padding: 0 30px 30px;
+    background: #ECEFF1;
 }
 
 .consulta-item {
-    background: #f8f9fa;
+    background: white;
     padding: 15px;
     margin-bottom: 15px;
     border-radius: 10px;
-    border-left: 4px solid #28a745;
+    border-left: 4px solid #FF6D00;
 }
 
 .consulta-header {
@@ -544,14 +580,51 @@ body {
     display: flex;
     gap: 20px;
     font-size: 14px;
-    color: #6c757d;
+    color: #546E7A;
     margin-top: 10px;
 }
 
 .no-results {
     text-align: center;
     padding: 40px;
-    color: #6c757d;
+    color: #546E7A;
+}
+
+.user-info {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(13, 71, 161, 0.1);
+    border-radius: 15px;
+    border: 2px solid rgba(13, 71, 161, 0.2);
+}
+
+.user-welcome {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.user-welcome span {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0D47A1;
+}
+
+.login-prompt {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 109, 0, 0.1);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 109, 0, 0.2);
+    text-align: center;
+}
+
+.guest-actions p {
+    margin-bottom: 15px;
+    color: #546E7A;
+    font-size: 1rem;
 }
 
 @media (max-width: 768px) {
