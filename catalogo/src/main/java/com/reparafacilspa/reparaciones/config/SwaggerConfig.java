@@ -13,7 +13,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("ReparaFacilSPA API")
-                        .description("API de Servicios de Reparación")
-                        .version("1.0.0"));
+                        .description("API de Servicios de Reparación con HATEOAS")
+                        .version("2.0.0"));
     }
 }

@@ -7,6 +7,8 @@ import com.reparafacilspa.reparaciones.repository.ServicioReparacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -16,7 +18,7 @@ public class ServicioReparacionService {
     @Autowired
     private ServicioReparacionRepository servicioRepository;
 
-    // Obtener todos los servicios activos
+    // Métodos existentes (sin cambios)
     public List<ServicioReparacionResponse> findAll() {
         return servicioRepository.findByActivoTrue()
                 .stream()
@@ -24,7 +26,6 @@ public class ServicioReparacionService {
                 .collect(Collectors.toList());
     }
 
-    // Crear nuevo servicio de reparación
     public ServicioReparacionResponse save(ServicioReparacionRequest request) {
         ServicioReparacion servicio = new ServicioReparacion();
         servicio.setNombreCliente(request.getNombreCliente());
@@ -44,14 +45,12 @@ public class ServicioReparacionService {
         return new ServicioReparacionResponse(savedServicio);
     }
 
-    // Buscar servicio por ID
     public ServicioReparacionResponse findById(Long id) {
         ServicioReparacion servicio = servicioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Servicio no encontrado con ID: " + id));
         return new ServicioReparacionResponse(servicio);
     }
 
-    // Actualizar servicio
     public ServicioReparacionResponse update(Long id, ServicioReparacion servicioDetails) {
         ServicioReparacion servicio = servicioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Servicio no encontrado con ID: " + id));
@@ -76,7 +75,6 @@ public class ServicioReparacionService {
         return new ServicioReparacionResponse(updatedServicio);
     }
 
-    // Eliminar servicio (soft delete)
     public void delete(Long id) {
         ServicioReparacion servicio = servicioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Servicio no encontrado con ID: " + id));
@@ -84,7 +82,6 @@ public class ServicioReparacionService {
         servicioRepository.save(servicio);
     }
 
-    // Buscar servicios por email del cliente
     public List<ServicioReparacionResponse> findByEmail(String email) {
         return servicioRepository.findByEmailAndActivoTrue(email)
                 .stream()
@@ -92,7 +89,6 @@ public class ServicioReparacionService {
                 .collect(Collectors.toList());
     }
 
-    // Buscar por estado
     public List<ServicioReparacionResponse> findByEstado(String estado) {
         try {
             ServicioReparacion.EstadoReparacion estadoEnum = 
@@ -106,7 +102,6 @@ public class ServicioReparacionService {
         }
     }
 
-    // Buscar por tipo de dispositivo
     public List<ServicioReparacionResponse> findByTipoDispositivo(String tipoDispositivo) {
         return servicioRepository.findByTipoDispositivoAndActivoTrue(tipoDispositivo)
                 .stream()
@@ -114,7 +109,6 @@ public class ServicioReparacionService {
                 .collect(Collectors.toList());
     }
 
-    // Búsqueda general
     public List<ServicioReparacionResponse> search(String busqueda) {
         return servicioRepository.findByActivoTrue()
                 .stream()
@@ -126,7 +120,6 @@ public class ServicioReparacionService {
                 .collect(Collectors.toList());
     }
 
-    // Cambiar estado del servicio
     public ServicioReparacionResponse cambiarEstado(Long id, String nuevoEstado) {
         ServicioReparacion servicio = servicioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Servicio no encontrado con ID: " + id));
@@ -136,7 +129,6 @@ public class ServicioReparacionService {
                 ServicioReparacion.EstadoReparacion.valueOf(nuevoEstado.toUpperCase());
             servicio.setEstado(estadoEnum);
             
-            // Establecer fechas según el estado
             Date ahora = new Date();
             switch (estadoEnum) {
                 case EN_REPARACION:
@@ -153,7 +145,6 @@ public class ServicioReparacionService {
                     }
                     break;
                 default:
-                    // No hacer nada para otros estados
                     break;
             }
             
@@ -164,12 +155,10 @@ public class ServicioReparacionService {
         }
     }
 
-    // Obtener estadísticas del sistema
     public Map<String, Object> getEstadisticas() {
         List<ServicioReparacion> todosServicios = servicioRepository.findByActivoTrue();
         Map<String, Object> stats = new HashMap<>();
         
-        // Estadísticas generales
         stats.put("totalServicios", todosServicios.size());
         stats.put("serviciosAgendados", servicioRepository.countByEstadoAndActivoTrue(
             ServicioReparacion.EstadoReparacion.AGENDADO));
@@ -178,7 +167,6 @@ public class ServicioReparacionService {
         stats.put("serviciosCompletados", servicioRepository.countByEstadoAndActivoTrue(
             ServicioReparacion.EstadoReparacion.COMPLETADO));
         
-        // Estadísticas por tipo de dispositivo
         Map<String, Long> porTipoDispositivo = todosServicios.stream()
                 .collect(Collectors.groupingBy(
                     ServicioReparacion::getTipoDispositivo,
@@ -186,7 +174,6 @@ public class ServicioReparacionService {
                 ));
         stats.put("serviciosPorTipo", porTipoDispositivo);
         
-        // Técnicos activos - CORREGIDO
         Set<String> tecnicos = todosServicios.stream()
                 .map(ServicioReparacion::getTecnicoAsignado)
                 .filter(tecnico -> tecnico != null && !tecnico.trim().isEmpty())
@@ -194,5 +181,97 @@ public class ServicioReparacionService {
         stats.put("totalTecnicos", tecnicos.size());
         
         return stats;
+    }
+
+    // NUEVOS MÉTODOS PERSONALIZADOS PARA HATEOAS
+    
+    // 1. Obtener todas las reservas de un técnico específico
+    public List<ServicioReparacionResponse> findByTecnicoAsignado(String tecnicoAsignado) {
+        return servicioRepository.findByTecnicoAsignadoAndActivoTrue(tecnicoAsignado)
+                .stream()
+                .map(ServicioReparacionResponse::new)
+                .collect(Collectors.toList());
+    }
+    
+    // 2. Obtener todas las reservas en una fecha específica
+    public List<ServicioReparacionResponse> findByFechaAgendada(String fechaStr) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date fecha = sdf.parse(fechaStr);
+            return servicioRepository.findByFechaAgendadaAndActivoTrue(fecha)
+                    .stream()
+                    .map(ServicioReparacionResponse::new)
+                    .collect(Collectors.toList());
+        } catch (ParseException e) {
+            throw new RuntimeException("Formato de fecha inválido. Use yyyy-MM-dd");
+        }
+    }
+    
+    // 3. Obtener el total de reservas realizadas por un cliente (email)
+    public long countByEmail(String email) {
+        return servicioRepository.countByEmailAndActivoTrue(email);
+    }
+    
+    // 4. Obtener todas las reservas de un cliente en una fecha específica
+    public List<ServicioReparacionResponse> findByEmailAndFechaAgendada(String email, String fechaStr) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date fecha = sdf.parse(fechaStr);
+            return servicioRepository.findByEmailAndFechaAgendadaAndActivoTrue(email, fecha)
+                    .stream()
+                    .map(ServicioReparacionResponse::new)
+                    .collect(Collectors.toList());
+        } catch (ParseException e) {
+            throw new RuntimeException("Formato de fecha inválido. Use yyyy-MM-dd");
+        }
+    }
+    
+    // 5. Obtener todas las reservas de un técnico en un estado específico
+    public List<ServicioReparacionResponse> findByTecnicoAsignadoAndEstado(String tecnicoAsignado, String estado) {
+        try {
+            ServicioReparacion.EstadoReparacion estadoEnum = 
+                ServicioReparacion.EstadoReparacion.valueOf(estado.toUpperCase());
+            return servicioRepository.findByTecnicoAsignadoAndEstadoAndActivoTrue(tecnicoAsignado, estadoEnum)
+                    .stream()
+                    .map(ServicioReparacionResponse::new)
+                    .collect(Collectors.toList());
+        } catch (IllegalArgumentException e) {
+            return new ArrayList<>();
+        }
+    }
+    
+    // 6. Obtener todas las reservas de un cliente entre dos fechas
+    public List<ServicioReparacionResponse> findByEmailAndFechaAgendadaBetween(String email, String fechaInicioStr, String fechaFinStr) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date fechaInicio = sdf.parse(fechaInicioStr);
+            Date fechaFin = sdf.parse(fechaFinStr);
+            return servicioRepository.findByEmailAndFechaAgendadaBetweenAndActivoTrue(email, fechaInicio, fechaFin)
+                    .stream()
+                    .map(ServicioReparacionResponse::new)
+                    .collect(Collectors.toList());
+        } catch (ParseException e) {
+            throw new RuntimeException("Formato de fecha inválido. Use yyyy-MM-dd");
+        }
+    }
+    
+    // 7. Obtener todas las reservas de un técnico entre dos fechas
+    public List<ServicioReparacionResponse> findByTecnicoAsignadoAndFechaAgendadaBetween(String tecnicoAsignado, String fechaInicioStr, String fechaFinStr) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date fechaInicio = sdf.parse(fechaInicioStr);
+            Date fechaFin = sdf.parse(fechaFinStr);
+            return servicioRepository.findByTecnicoAsignadoAndFechaAgendadaBetweenAndActivoTrue(tecnicoAsignado, fechaInicio, fechaFin)
+                    .stream()
+                    .map(ServicioReparacionResponse::new)
+                    .collect(Collectors.toList());
+        } catch (ParseException e) {
+            throw new RuntimeException("Formato de fecha inválido. Use yyyy-MM-dd");
+        }
+    }
+    
+    // 8. Obtener el total de reservas realizadas por un técnico específico
+    public long countByTecnicoAsignado(String tecnicoAsignado) {
+        return servicioRepository.countByTecnicoAsignadoAndActivoTrue(tecnicoAsignado);
     }
 }
