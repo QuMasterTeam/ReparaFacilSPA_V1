@@ -15,7 +15,7 @@
     <groupId>com.reparafacilspa</groupId>
     <artifactId>reparaciones</artifactId>
     <version>1.0.0</version>
-    <n>reparafacilspa-reparaciones</n>
+    <name>reparafacilspa-reparaciones</name>
     <description>Sistema de Reparaciones ReparaFacilSPA</description>
     
     <properties>

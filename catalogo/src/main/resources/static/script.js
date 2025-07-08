@@ -70,7 +70,40 @@ document.addEventListener('DOMContentLoaded', function() {
     if (newServiceForm) {
         newServiceForm.addEventListener('submit', handleNewServiceSubmit);
     }
+    
+    // Formatear input de costo con separadores de miles
+    const costoInput = document.getElementById('costoEstimado');
+    if (costoInput) {
+        costoInput.addEventListener('input', formatCostoInput);
+    }
 });
+
+// Formatear input de costo con separadores de miles
+function formatCostoInput(e) {
+    let value = e.target.value.replace(/\D/g, ''); // Solo números
+    if (value) {
+        // Convertir a número y formatear con separadores de miles
+        const numberValue = parseInt(value);
+        e.target.value = numberValue;
+        
+        // Mostrar preview formateado
+        const preview = e.target.parentNode.querySelector('.cost-preview');
+        if (preview) {
+            preview.remove();
+        }
+        
+        if (numberValue > 0) {
+            const formattedValue = numberValue.toLocaleString('es-CL');
+            const previewElement = document.createElement('small');
+            previewElement.className = 'cost-preview';
+            previewElement.style.color = '#0D47A1';
+            previewElement.style.fontSize = '12px';
+            previewElement.style.fontWeight = 'bold';
+            previewElement.textContent = `Formato: $${formattedValue}`;
+            e.target.parentNode.appendChild(previewElement);
+        }
+    }
+}
 
 // Cargar datos demo
 function loadDemoData() {
@@ -367,7 +400,7 @@ function createServicioCard(servicio) {
                 ${servicio.costoEstimado ? `
                 <div class="service-cost">
                     <i class="fas fa-dollar-sign"></i>
-                    <strong>Costo estimado:</strong> ${servicio.costoEstimado.toLocaleString()}
+                    <strong>Costo estimado:</strong> $${servicio.costoEstimado.toLocaleString('es-CL')}
                 </div>
                 ` : ''}
                 ${actionButtons}
@@ -441,6 +474,11 @@ function closeModal(modalId) {
             const form = document.getElementById('newServiceForm');
             if (form) {
                 form.reset();
+                // Limpiar preview de costo
+                const preview = form.querySelector('.cost-preview');
+                if (preview) {
+                    preview.remove();
+                }
             }
         }
     }
@@ -451,6 +489,8 @@ function handleNewServiceSubmit(e) {
     e.preventDefault();
     
     const formData = new FormData(e.target);
+    const costoEstimado = formData.get('costoEstimado');
+    
     const serviceData = {
         id: allServicios.length + 1,
         nombreCliente: formData.get('nombreCliente'),
@@ -463,7 +503,9 @@ function handleNewServiceSubmit(e) {
         fechaAgendada: formData.get('fechaAgendada'),
         fechaCreacion: new Date().toISOString(),
         estado: 'AGENDADO',
-        prioridad: 'NORMAL',
+        prioridad: formData.get('prioridad') || 'NORMAL',
+        tecnicoAsignado: formData.get('tecnicoAsignado') || null,
+        costoEstimado: costoEstimado ? parseInt(costoEstimado) : null,
         diasTranscurridos: 0
     };
 
@@ -504,6 +546,7 @@ async function consultarPorEmail() {
                         ${getEstadoBadge(servicio.estado)}
                     </div>
                     <p><strong>Problema:</strong> ${servicio.descripcionProblema}</p>
+                    ${servicio.costoEstimado ? `<p><strong>Costo estimado:</strong> ${servicio.costoEstimado.toLocaleString('es-CL')}</p>` : ''}
                     <div class="consulta-dates">
                         <span><i class="fas fa-calendar"></i> Agendado: ${new Date(servicio.fechaAgendada).toLocaleString('es-CL')}</span>
                         ${servicio.tecnicoAsignado ? `<span><i class="fas fa-user-cog"></i> Técnico: ${servicio.tecnicoAsignado}</span>` : ''}
@@ -571,7 +614,7 @@ Fecha Agendada: ${new Date(servicio.fechaAgendada).toLocaleString('es-CL')}
 Días Transcurridos: ${servicio.diasTranscurridos}
 
 ${servicio.tecnicoAsignado ? `Técnico Asignado: ${servicio.tecnicoAsignado}` : 'Sin técnico asignado'}
-${servicio.costoEstimado ? `Costo Estimado: ${servicio.costoEstimado.toLocaleString()}` : ''}
+${servicio.costoEstimado ? `Costo Estimado: ${servicio.costoEstimado.toLocaleString('es-CL')}` : 'Sin costo estimado'}
 ${servicio.observaciones ? `Observaciones: ${servicio.observaciones}` : ''}`);
 }
 
@@ -583,7 +626,7 @@ async function loadStatistics() {
             serviciosAgendados: allServicios.filter(s => s.estado === 'AGENDADO').length,
             serviciosEnReparacion: allServicios.filter(s => s.estado === 'EN_REPARACION').length,
             serviciosCompletados: allServicios.filter(s => s.estado === 'COMPLETADO').length,
-            totalTecnicos: 3
+            totalTecnicos: 5
         };
         displayStatistics(stats);
     } catch (error) {

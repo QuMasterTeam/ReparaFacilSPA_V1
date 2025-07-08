@@ -154,9 +154,38 @@
                     <label for="descripcionProblema">Descripción del Problema *</label>
                     <textarea id="descripcionProblema" name="descripcionProblema" rows="3" required></textarea>
                 </div>
-                <div class="form-group">
-                    <label for="fechaAgendada">Fecha y Hora Agendada *</label>
-                    <input type="datetime-local" id="fechaAgendada" name="fechaAgendada" required>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fechaAgendada">Fecha y Hora Agendada *</label>
+                        <input type="datetime-local" id="fechaAgendada" name="fechaAgendada" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="costoEstimado">Costo Estimado (CLP)</label>
+                        <input type="number" id="costoEstimado" name="costoEstimado" min="0" step="1000" placeholder="Ej: 85000">
+                        <small style="color: #546E7A; font-size: 12px;">Campo opcional - puede estimarse después</small>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="prioridad">Prioridad</label>
+                        <select id="prioridad" name="prioridad">
+                            <option value="NORMAL">Normal</option>
+                            <option value="BAJA">Baja</option>
+                            <option value="ALTA">Alta</option>
+                            <option value="URGENTE">Urgente</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tecnicoAsignado">Técnico Asignado</label>
+                        <select id="tecnicoAsignado" name="tecnicoAsignado">
+                            <option value="">Sin asignar</option>
+                            <option value="Juan Pérez">Juan Pérez</option>
+                            <option value="Ana López">Ana López</option>
+                            <option value="Pedro Sánchez">Pedro Sánchez</option>
+                            <option value="María Rodríguez">María Rodríguez</option>
+                            <option value="Carlos Silva">Carlos Silva</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">
