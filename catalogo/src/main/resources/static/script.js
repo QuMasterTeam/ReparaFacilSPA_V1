@@ -1,9 +1,11 @@
 const API_BASE_URL = 'http://localhost:8081/reparafacil-api/api/v1/reparaciones';
+const AUTH_API_URL = 'http://localhost:8081/reparafacil-api/api/v1/auth';
 let allServicios = [];
 let currentServicios = [];
 let userSession = null;
+let isBackendConnected = false;
 
-// Datos demo para mostrar funcionamiento
+// Datos demo para fallback (mantener los existentes)
 const demoServicios = [
     {
         id: 1,
@@ -61,8 +63,7 @@ const demoServicios = [
 // Cargar servicios al iniciar
 document.addEventListener('DOMContentLoaded', function() {
     checkUserSession();
-    loadDemoData();
-    loadStatistics();
+    initializeApp();
     setMinDateTime();
     
     // Agregar event listener para el formulario
@@ -78,38 +79,195 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Formatear input de costo con separadores de miles
-function formatCostoInput(e) {
-    let value = e.target.value.replace(/\D/g, ''); // Solo números
-    if (value) {
-        // Convertir a número y formatear con separadores de miles
-        const numberValue = parseInt(value);
-        e.target.value = numberValue;
+// Inicializar aplicación - intentar conectar con backend
+async function initializeApp() {
+    showConnectionStatus('Conectando con el servidor...', 'connecting');
+    
+    try {
+        // Verificar estado del backend
+        await checkBackendHealth();
         
-        // Mostrar preview formateado
-        const preview = e.target.parentNode.querySelector('.cost-preview');
-        if (preview) {
-            preview.remove();
+        if (isBackendConnected) {
+            showConnectionStatus('✓ Conectado al servidor', 'connected');
+            await loadServiciosFromBackend();
+        } else {
+            throw new Error('Backend no disponible');
         }
+    } catch (error) {
+        console.warn('Backend no disponible, usando datos demo:', error);
+        showConnectionStatus('⚠ Modo offline - Datos de demostración', 'offline');
+        loadDemoData();
+    }
+    
+    await loadStatistics();
+}
+
+// Verificar salud del backend
+async function checkBackendHealth() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/health`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            timeout: 5000
+        });
         
-        if (numberValue > 0) {
-            const formattedValue = numberValue.toLocaleString('es-CL');
-            const previewElement = document.createElement('small');
-            previewElement.className = 'cost-preview';
-            previewElement.style.color = '#0D47A1';
-            previewElement.style.fontSize = '12px';
-            previewElement.style.fontWeight = 'bold';
-            previewElement.textContent = `Formato: $${formattedValue}`;
-            e.target.parentNode.appendChild(previewElement);
+        if (response.ok) {
+            isBackendConnected = true;
+            return true;
         }
+        throw new Error('Backend health check failed');
+    } catch (error) {
+        console.warn('Backend health check failed:', error);
+        isBackendConnected = false;
+        return false;
     }
 }
 
-// Cargar datos demo
+// Mostrar estado de conexión
+function showConnectionStatus(message, type) {
+    const header = document.querySelector('.header');
+    let statusElement = document.getElementById('connectionStatus');
+    
+    if (!statusElement) {
+        statusElement = document.createElement('div');
+        statusElement.id = 'connectionStatus';
+        statusElement.style.cssText = `
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+        `;
+        header.appendChild(statusElement);
+    }
+    
+    statusElement.textContent = message;
+    
+    // Estilos según tipo de conexión
+    switch (type) {
+        case 'connecting':
+            statusElement.style.backgroundColor = '#FFF3CD';
+            statusElement.style.color = '#856404';
+            statusElement.style.border = '1px solid #FFEAA7';
+            break;
+        case 'connected':
+            statusElement.style.backgroundColor = '#D4EDDA';
+            statusElement.style.color = '#155724';
+            statusElement.style.border = '1px solid #C3E6CB';
+            break;
+        case 'offline':
+            statusElement.style.backgroundColor = '#F8D7DA';
+            statusElement.style.color = '#721C24';
+            statusElement.style.border = '1px solid #F5C6CB';
+            break;
+    }
+}
+
+// Función para realizar peticiones HTTP al backend
+async function fetchAPI(endpoint, options = {}) {
+    try {
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+        
+        if (userSession && userSession.sessionToken) {
+            headers['Authorization'] = `Bearer ${userSession.sessionToken}`;
+        }
+        
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+            headers: headers,
+            ...options
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        // Si la petición falla, marcar backend como desconectado
+        isBackendConnected = false;
+        showConnectionStatus('⚠ Conexión perdida - Modo offline', 'offline');
+        throw error;
+    }
+}
+
+// Cargar servicios desde el backend
+async function loadServiciosFromBackend() {
+    try {
+        showLoading();
+        console.log('Cargando servicios desde backend...');
+        
+        const servicios = await fetchAPI('');
+        console.log('Servicios cargados:', servicios);
+        
+        // Adaptar formato del backend al frontend
+        allServicios = servicios.map(adaptServicioFromBackend);
+        currentServicios = allServicios;
+        
+        displayServicios(allServicios);
+        hideError();
+        
+        console.log(`✓ ${allServicios.length} servicios cargados desde el backend`);
+    } catch (error) {
+        console.error('Error al cargar servicios del backend:', error);
+        
+        // Fallback a datos demo
+        showConnectionStatus('⚠ Error de conexión - Usando datos demo', 'offline');
+        loadDemoData();
+        
+        showError('No se pudo conectar con el servidor. Mostrando datos de demostración.', false);
+    }
+}
+
+// Adaptar formato de servicio del backend al frontend
+function adaptServicioFromBackend(backendServicio) {
+    return {
+        id: backendServicio.id,
+        nombreCliente: backendServicio.nombreCliente,
+        telefono: backendServicio.telefono,
+        email: backendServicio.email,
+        tipoDispositivo: backendServicio.tipoDispositivo,
+        marca: backendServicio.marca,
+        modelo: backendServicio.modelo,
+        descripcionProblema: backendServicio.descripcionProblema,
+        estado: backendServicio.estado,
+        prioridad: backendServicio.prioridad || 'NORMAL',
+        fechaAgendada: backendServicio.fechaAgendada,
+        fechaCreacion: backendServicio.fechaCreacion,
+        diasTranscurridos: backendServicio.diasTranscurridos,
+        tecnicoAsignado: backendServicio.tecnicoAsignado,
+        costoEstimado: backendServicio.costoEstimado,
+        costoFinal: backendServicio.costoFinal,
+        observaciones: backendServicio.observaciones
+    };
+}
+
+// Adaptar formato de servicio del frontend al backend
+function adaptServicioToBackend(frontendServicio) {
+    return {
+        nombreCliente: frontendServicio.nombreCliente,
+        telefono: frontendServicio.telefono,
+        email: frontendServicio.email,
+        tipoDispositivo: frontendServicio.tipoDispositivo,
+        marca: frontendServicio.marca,
+        modelo: frontendServicio.modelo,
+        descripcionProblema: frontendServicio.descripcionProblema,
+        fechaAgendada: frontendServicio.fechaAgendada
+    };
+}
+
+// Cargar datos demo (fallback)
 function loadDemoData() {
     allServicios = demoServicios;
     currentServicios = demoServicios;
     displayServicios(demoServicios);
+    console.log('Datos demo cargados como fallback');
 }
 
 // Establecer fecha mínima para agendamiento (solo fechas futuras)
@@ -213,44 +371,13 @@ function logout() {
     }
 }
 
-// Función para realizar peticiones HTTP
-async function fetchAPI(endpoint, options = {}) {
-    try {
-        const headers = {
-            'Content-Type': 'application/json',
-            ...options.headers
-        };
-        
-        if (userSession && userSession.sessionToken) {
-            headers['Authorization'] = `Bearer ${userSession.sessionToken}`;
-        }
-        
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            headers: headers,
-            ...options
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        showError('Error de conexión con el servidor. Verifica que el servicio esté ejecutándose.');
-        throw error;
-    }
-}
-
 // Cargar todos los servicios
 async function loadAllServicios() {
-    try {
-        showLoading();
-        // En modo demo, usar datos locales
+    if (isBackendConnected) {
+        await loadServiciosFromBackend();
+    } else {
         displayServicios(allServicios);
         currentServicios = allServicios;
-        hideError();
-    } catch (error) {
-        showError('Error al cargar los servicios');
     }
 }
 
@@ -258,18 +385,32 @@ async function loadAllServicios() {
 async function loadServiciosByEstado(estado) {
     try {
         showLoading();
+        
+        if (isBackendConnected) {
+            const servicios = await fetchAPI(`/estado/${estado}`);
+            const adaptedServicios = servicios.map(adaptServicioFromBackend);
+            displayServicios(adaptedServicios);
+            currentServicios = adaptedServicios;
+        } else {
+            const filtered = allServicios.filter(s => s.estado === estado);
+            displayServicios(filtered);
+            currentServicios = filtered;
+        }
+        
+        hideError();
+    } catch (error) {
+        console.error('Error al cargar servicios por estado:', error);
+        showError('Error al cargar servicios por estado');
+        // Fallback local
         const filtered = allServicios.filter(s => s.estado === estado);
         displayServicios(filtered);
         currentServicios = filtered;
-        hideError();
-    } catch (error) {
-        showError('Error al cargar los servicios por estado');
     }
 }
 
 // Buscar servicios
 async function searchServicios() {
-    const query = document.getElementById('searchInput').value.trim().toLowerCase();
+    const query = document.getElementById('searchInput').value.trim();
     if (!query) {
         loadAllServicios();
         return;
@@ -277,20 +418,44 @@ async function searchServicios() {
 
     try {
         showLoading();
+        
+        if (isBackendConnected) {
+            const servicios = await fetchAPI(`/buscar?q=${encodeURIComponent(query)}`);
+            const adaptedServicios = servicios.map(adaptServicioFromBackend);
+            displayServicios(adaptedServicios);
+            currentServicios = adaptedServicios;
+        } else {
+            // Búsqueda local
+            const filtered = allServicios.filter(servicio => 
+                servicio.nombreCliente.toLowerCase().includes(query.toLowerCase()) ||
+                servicio.email.toLowerCase().includes(query.toLowerCase()) ||
+                servicio.tipoDispositivo.toLowerCase().includes(query.toLowerCase()) ||
+                servicio.marca.toLowerCase().includes(query.toLowerCase()) ||
+                servicio.modelo.toLowerCase().includes(query.toLowerCase()) ||
+                servicio.descripcionProblema.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            displayServicios(filtered);
+            currentServicios = filtered;
+        }
+        
+        hideError();
+    } catch (error) {
+        console.error('Error al buscar servicios:', error);
+        showError('Error al buscar servicios');
+        
+        // Fallback búsqueda local
         const filtered = allServicios.filter(servicio => 
-            servicio.nombreCliente.toLowerCase().includes(query) ||
-            servicio.email.toLowerCase().includes(query) ||
-            servicio.tipoDispositivo.toLowerCase().includes(query) ||
-            servicio.marca.toLowerCase().includes(query) ||
-            servicio.modelo.toLowerCase().includes(query) ||
-            servicio.descripcionProblema.toLowerCase().includes(query)
+            servicio.nombreCliente.toLowerCase().includes(query.toLowerCase()) ||
+            servicio.email.toLowerCase().includes(query.toLowerCase()) ||
+            servicio.tipoDispositivo.toLowerCase().includes(query.toLowerCase()) ||
+            servicio.marca.toLowerCase().includes(query.toLowerCase()) ||
+            servicio.modelo.toLowerCase().includes(query.toLowerCase()) ||
+            servicio.descripcionProblema.toLowerCase().includes(query.toLowerCase())
         );
         
         displayServicios(filtered);
         currentServicios = filtered;
-        hideError();
-    } catch (error) {
-        showError('Error al buscar servicios');
     }
 }
 
@@ -325,6 +490,7 @@ function displayServicios(servicios) {
                 <i class="fas fa-tools"></i>
                 <h3>No se encontraron servicios</h3>
                 <p>Intenta modificar los filtros de búsqueda</p>
+                ${!isBackendConnected ? '<p><small>Modo offline - Datos limitados</small></p>' : ''}
             </div>
         `;
         return;
@@ -352,8 +518,12 @@ function createServicioCard(servicio) {
             </button>
          </div>` : '';
 
+    const modeIndicator = !isBackendConnected ? 
+        '<div class="mode-indicator">🔒 Modo Demo</div>' : '';
+
     return `
         <div class="service-card">
+            ${modeIndicator}
             <div class="service-header">
                 <div class="service-badges">
                     ${estadoBadge}
@@ -484,15 +654,41 @@ function closeModal(modalId) {
     }
 }
 
+// Formatear input de costo con separadores de miles
+function formatCostoInput(e) {
+    let value = e.target.value.replace(/\D/g, ''); // Solo números
+    if (value) {
+        // Convertir a número y formatear con separadores de miles
+        const numberValue = parseInt(value);
+        e.target.value = numberValue;
+        
+        // Mostrar preview formateado
+        const preview = e.target.parentNode.querySelector('.cost-preview');
+        if (preview) {
+            preview.remove();
+        }
+        
+        if (numberValue > 0) {
+            const formattedValue = numberValue.toLocaleString('es-CL');
+            const previewElement = document.createElement('small');
+            previewElement.className = 'cost-preview';
+            previewElement.style.color = '#0D47A1';
+            previewElement.style.fontSize = '12px';
+            previewElement.style.fontWeight = 'bold';
+            previewElement.textContent = `Formato: $${formattedValue}`;
+            e.target.parentNode.appendChild(previewElement);
+        }
+    }
+}
+
 // Manejar formulario de nuevo servicio
-function handleNewServiceSubmit(e) {
+async function handleNewServiceSubmit(e) {
     e.preventDefault();
     
     const formData = new FormData(e.target);
     const costoEstimado = formData.get('costoEstimado');
     
     const serviceData = {
-        id: allServicios.length + 1,
         nombreCliente: formData.get('nombreCliente'),
         telefono: formData.get('telefono'),
         email: formData.get('email'),
@@ -500,20 +696,48 @@ function handleNewServiceSubmit(e) {
         marca: formData.get('marca'),
         modelo: formData.get('modelo'),
         descripcionProblema: formData.get('descripcionProblema'),
-        fechaAgendada: formData.get('fechaAgendada'),
-        fechaCreacion: new Date().toISOString(),
-        estado: 'AGENDADO',
-        prioridad: formData.get('prioridad') || 'NORMAL',
-        tecnicoAsignado: formData.get('tecnicoAsignado') || null,
-        costoEstimado: costoEstimado ? parseInt(costoEstimado) : null,
-        diasTranscurridos: 0
+        fechaAgendada: formData.get('fechaAgendada')
     };
 
-    allServicios.push(serviceData);
-    showError('¡Servicio agendado exitosamente!', true);
-    closeModal('newServiceModal');
-    loadAllServicios();
-    loadStatistics();
+    try {
+        if (isBackendConnected) {
+            // Enviar al backend
+            const response = await fetchAPI('', {
+                method: 'POST',
+                body: JSON.stringify(serviceData)
+            });
+            
+            if (response.success) {
+                showError('¡Servicio agendado exitosamente en el servidor!', true);
+                closeModal('newServiceModal');
+                await loadAllServicios();
+                await loadStatistics();
+            } else {
+                throw new Error(response.message || 'Error al crear servicio');
+            }
+        } else {
+            // Modo demo - agregar localmente
+            const newService = {
+                id: allServicios.length + 1,
+                ...serviceData,
+                fechaCreacion: new Date().toISOString(),
+                estado: 'AGENDADO',
+                prioridad: formData.get('prioridad') || 'NORMAL',
+                tecnicoAsignado: formData.get('tecnicoAsignado') || null,
+                costoEstimado: costoEstimado ? parseInt(costoEstimado) : null,
+                diasTranscurridos: 0
+            };
+
+            allServicios.push(newService);
+            showError('¡Servicio agendado en modo demo!', true);
+            closeModal('newServiceModal');
+            loadAllServicios();
+            loadStatistics();
+        }
+    } catch (error) {
+        console.error('Error al crear servicio:', error);
+        showError(`Error al agendar servicio: ${error.message}`);
+    }
 }
 
 // Consultar servicios por email
@@ -525,7 +749,15 @@ async function consultarPorEmail() {
     }
 
     try {
-        const servicios = allServicios.filter(s => s.email.toLowerCase().includes(email.toLowerCase()));
+        let servicios = [];
+        
+        if (isBackendConnected) {
+            const response = await fetchAPI(`/cliente/${encodeURIComponent(email)}`);
+            servicios = response.map(adaptServicioFromBackend);
+        } else {
+            servicios = allServicios.filter(s => s.email.toLowerCase().includes(email.toLowerCase()));
+        }
+        
         const resultadosDiv = document.getElementById('resultadosConsulta');
         
         if (!resultadosDiv) return;
@@ -536,6 +768,7 @@ async function consultarPorEmail() {
                     <i class="fas fa-inbox"></i>
                     <h4>No se encontraron servicios</h4>
                     <p>No hay servicios registrados para este email.</p>
+                    ${!isBackendConnected ? '<p><small>Búsqueda en modo offline</small></p>' : ''}
                 </div>
             `;
         } else {
@@ -556,13 +789,54 @@ async function consultarPorEmail() {
             
             resultadosDiv.innerHTML = `
                 <h4>Servicios encontrados (${servicios.length})</h4>
+                ${!isBackendConnected ? '<p><small>Resultados desde datos locales</small></p>' : ''}
                 ${serviciosHTML}
             `;
         }
         
         resultadosDiv.style.display = 'block';
     } catch (error) {
+        console.error('Error al consultar servicios:', error);
         showError('Error al consultar servicios');
+        
+        // Fallback búsqueda local
+        const servicios = allServicios.filter(s => s.email.toLowerCase().includes(email.toLowerCase()));
+        const resultadosDiv = document.getElementById('resultadosConsulta');
+        
+        if (resultadosDiv) {
+            if (servicios.length === 0) {
+                resultadosDiv.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-inbox"></i>
+                        <h4>No se encontraron servicios</h4>
+                        <p>No hay servicios registrados para este email.</p>
+                        <p><small>Búsqueda local por error de conexión</small></p>
+                    </div>
+                `;
+            } else {
+                const serviciosHTML = servicios.map(servicio => `
+                    <div class="consulta-item">
+                        <div class="consulta-header">
+                            <h4>${servicio.marca} ${servicio.modelo}</h4>
+                            ${getEstadoBadge(servicio.estado)}
+                        </div>
+                        <p><strong>Problema:</strong> ${servicio.descripcionProblema}</p>
+                        ${servicio.costoEstimado ? `<p><strong>Costo estimado:</strong> ${servicio.costoEstimado.toLocaleString('es-CL')}</p>` : ''}
+                        <div class="consulta-dates">
+                            <span><i class="fas fa-calendar"></i> Agendado: ${new Date(servicio.fechaAgendada).toLocaleString('es-CL')}</span>
+                            ${servicio.tecnicoAsignado ? `<span><i class="fas fa-user-cog"></i> Técnico: ${servicio.tecnicoAsignado}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+                
+                resultadosDiv.innerHTML = `
+                    <h4>Servicios encontrados (${servicios.length})</h4>
+                    <p><small>Resultados desde datos locales por error de conexión</small></p>
+                    ${serviciosHTML}
+                `;
+            }
+            resultadosDiv.style.display = 'block';
+        }
     }
 }
 
@@ -578,15 +852,42 @@ async function cambiarEstado(servicioId) {
     if (!nuevoEstado) return;
 
     try {
+        if (isBackendConnected) {
+            // Actualizar en el backend
+            const response = await fetchAPI(`/${servicioId}/estado`, {
+                method: 'PUT',
+                body: JSON.stringify({ estado: nuevoEstado.toUpperCase() })
+            });
+            
+            if (response.success) {
+                showError('Estado actualizado exitosamente en el servidor', true);
+                await loadAllServicios();
+                await loadStatistics();
+            } else {
+                throw new Error(response.message || 'Error al cambiar estado');
+            }
+        } else {
+            // Modo demo - actualizar localmente
+            const servicio = allServicios.find(s => s.id === servicioId);
+            if (servicio) {
+                servicio.estado = nuevoEstado.toUpperCase();
+                showError('Estado actualizado en modo demo', true);
+                displayServicios(currentServicios);
+                loadStatistics();
+            }
+        }
+    } catch (error) {
+        console.error('Error al cambiar estado:', error);
+        showError(`Error al cambiar estado: ${error.message}`);
+        
+        // Fallback local en caso de error
         const servicio = allServicios.find(s => s.id === servicioId);
         if (servicio) {
             servicio.estado = nuevoEstado.toUpperCase();
-            showError('Estado actualizado exitosamente', true);
+            showError('Estado actualizado localmente (error de conexión)', true);
             displayServicios(currentServicios);
             loadStatistics();
         }
-    } catch (error) {
-        showError('Error al cambiar estado');
     }
 }
 
@@ -595,7 +896,9 @@ function verDetalle(servicioId) {
     const servicio = allServicios.find(s => s.id === servicioId);
     if (!servicio) return;
 
-    alert(`Detalle del Servicio #${servicio.id}
+    const modeText = isBackendConnected ? 'Datos del servidor' : 'Datos demo/locales';
+
+    alert(`Detalle del Servicio #${servicio.id} (${modeText})
 
 Cliente: ${servicio.nombreCliente}
 Email: ${servicio.email}
@@ -621,16 +924,35 @@ ${servicio.observaciones ? `Observaciones: ${servicio.observaciones}` : ''}`);
 // Cargar estadísticas
 async function loadStatistics() {
     try {
+        let stats;
+        
+        if (isBackendConnected) {
+            // Obtener estadísticas del backend
+            stats = await fetchAPI('/estadisticas');
+        } else {
+            // Calcular estadísticas locales
+            stats = {
+                totalServicios: allServicios.length,
+                serviciosAgendados: allServicios.filter(s => s.estado === 'AGENDADO').length,
+                serviciosEnReparacion: allServicios.filter(s => s.estado === 'EN_REPARACION').length,
+                serviciosCompletados: allServicios.filter(s => s.estado === 'COMPLETADO').length,
+                totalTecnicos: new Set(allServicios.map(s => s.tecnicoAsignado).filter(t => t)).size || 5
+            };
+        }
+        
+        displayStatistics(stats);
+    } catch (error) {
+        console.warn('Error al cargar estadísticas del backend, usando cálculo local:', error);
+        
+        // Fallback - calcular estadísticas locales
         const stats = {
             totalServicios: allServicios.length,
             serviciosAgendados: allServicios.filter(s => s.estado === 'AGENDADO').length,
             serviciosEnReparacion: allServicios.filter(s => s.estado === 'EN_REPARACION').length,
             serviciosCompletados: allServicios.filter(s => s.estado === 'COMPLETADO').length,
-            totalTecnicos: 5
+            totalTecnicos: new Set(allServicios.map(s => s.tecnicoAsignado).filter(t => t)).size || 5
         };
         displayStatistics(stats);
-    } catch (error) {
-        console.error('Error al cargar estadísticas:', error);
     }
 }
 
@@ -639,10 +961,13 @@ function displayStatistics(stats) {
     const statsGrid = document.getElementById('statsGrid');
     if (!statsGrid) return;
     
+    const modeIndicator = !isBackendConnected ? '<small>📊 Datos locales</small>' : '<small>🌐 Datos del servidor</small>';
+    
     statsGrid.innerHTML = `
         <div class="stat-card">
             <div class="stat-number">${stats.totalServicios || 0}</div>
             <div class="stat-label">Total Servicios</div>
+            ${modeIndicator}
         </div>
         <div class="stat-card">
             <div class="stat-number">${stats.serviciosAgendados || 0}</div>
@@ -671,6 +996,7 @@ function showLoading() {
             <div class="loading">
                 <i class="fas fa-spinner"></i>
                 <div>Cargando servicios...</div>
+                ${!isBackendConnected ? '<small>Modo offline</small>' : '<small>Conectando con servidor</small>'}
             </div>
         `;
     }
@@ -704,6 +1030,60 @@ function hideError() {
     }
 }
 
+// Reconectar con el backend
+async function tryReconnect() {
+    showConnectionStatus('Intentando reconectar...', 'connecting');
+    
+    try {
+        await checkBackendHealth();
+        
+        if (isBackendConnected) {
+            showConnectionStatus('✓ Reconectado al servidor', 'connected');
+            await loadServiciosFromBackend();
+            await loadStatistics();
+            showError('¡Reconectado exitosamente al servidor!', true);
+        } else {
+            throw new Error('Backend no disponible');
+        }
+    } catch (error) {
+        showConnectionStatus('⚠ Sin conexión - Modo offline', 'offline');
+        showError('No se pudo reconectar al servidor');
+    }
+}
+
+// Agregar botón de reconexión
+function addReconnectButton() {
+    const connectionStatus = document.getElementById('connectionStatus');
+    if (connectionStatus && !isBackendConnected) {
+        const reconnectBtn = document.createElement('button');
+        reconnectBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Intentar Reconectar';
+        reconnectBtn.className = 'btn btn-sm btn-secondary';
+        reconnectBtn.style.marginLeft = '10px';
+        reconnectBtn.onclick = tryReconnect;
+        
+        if (!connectionStatus.querySelector('button')) {
+            connectionStatus.appendChild(reconnectBtn);
+        }
+    }
+}
+
+// Verificar conexión periódicamente
+setInterval(async () => {
+    if (!isBackendConnected) {
+        console.log('Verificando reconexión automática...');
+        await checkBackendHealth();
+        
+        if (isBackendConnected) {
+            showConnectionStatus('✓ Reconectado automáticamente', 'connected');
+            await loadServiciosFromBackend();
+            await loadStatistics();
+            showError('¡Conexión restaurada automáticamente!', true);
+        } else {
+            addReconnectButton();
+        }
+    }
+}, 30000); // Verificar cada 30 segundos
+
 // Evento para buscar con Enter
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {
@@ -719,4 +1099,24 @@ window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
         event.target.style.display = 'none';
     }
+}
+
+// Función para testing - forzar modo offline
+function toggleOfflineMode() {
+    isBackendConnected = !isBackendConnected;
+    
+    if (isBackendConnected) {
+        showConnectionStatus('✓ Modo online habilitado', 'connected');
+        loadServiciosFromBackend();
+    } else {
+        showConnectionStatus('⚠ Modo offline forzado', 'offline');
+        loadDemoData();
+    }
+}
+
+// Exportar funciones para testing (solo en desarrollo)
+if (typeof window !== 'undefined') {
+    window.toggleOfflineMode = toggleOfflineMode;
+    window.tryReconnect = tryReconnect;
+    window.checkBackendHealth = checkBackendHealth;
 }
