@@ -3,65 +3,10 @@ let allServicios = [];
 let currentServicios = [];
 let userSession = null;
 
-// Datos demo para mostrar funcionamiento
-const demoServicios = [
-    {
-        id: 1,
-        nombreCliente: "María González",
-        telefono: "+56 9 1234 5678",
-        email: "maria.gonzalez@email.com",
-        tipoDispositivo: "Smartphone",
-        marca: "Samsung",
-        modelo: "Galaxy S21",
-        descripcionProblema: "Pantalla rota después de una caída",
-        estado: "AGENDADO",
-        prioridad: "ALTA",
-        fechaAgendada: "2025-06-25T14:00:00",
-        fechaCreacion: "2025-06-24T10:30:00",
-        diasTranscurridos: 1,
-        tecnicoAsignado: "Juan Pérez",
-        costoEstimado: 85000
-    },
-    {
-        id: 2,
-        nombreCliente: "Carlos Rodríguez",
-        telefono: "+56 9 8765 4321",
-        email: "carlos.rodriguez@email.com",
-        tipoDispositivo: "Laptop",
-        marca: "HP",
-        modelo: "Pavilion 15",
-        descripcionProblema: "No enciende, posible problema con la fuente de poder",
-        estado: "EN_REPARACION",
-        prioridad: "NORMAL",
-        fechaAgendada: "2025-06-24T09:00:00",
-        fechaCreacion: "2025-06-23T16:45:00",
-        diasTranscurridos: 2,
-        tecnicoAsignado: "Ana López",
-        costoEstimado: 45000
-    },
-    {
-        id: 3,
-        nombreCliente: "Sofía Martínez",
-        telefono: "+56 9 5555 6666",
-        email: "sofia.martinez@email.com",
-        tipoDispositivo: "Tablet",
-        marca: "iPad",
-        modelo: "Air 4",
-        descripcionProblema: "Batería se agota muy rápido",
-        estado: "COMPLETADO",
-        prioridad: "BAJA",
-        fechaAgendada: "2025-06-22T11:00:00",
-        fechaCreacion: "2025-06-21T14:20:00",
-        diasTranscurridos: 3,
-        tecnicoAsignado: "Pedro Sánchez",
-        costoEstimado: 65000
-    }
-];
-
 // Cargar servicios al iniciar
 document.addEventListener('DOMContentLoaded', function() {
     checkUserSession();
-    loadDemoData();
+    loadAllServicios();
     loadStatistics();
     setMinDateTime();
     
@@ -70,47 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (newServiceForm) {
         newServiceForm.addEventListener('submit', handleNewServiceSubmit);
     }
-    
-    // Formatear input de costo con separadores de miles
-    const costoInput = document.getElementById('costoEstimado');
-    if (costoInput) {
-        costoInput.addEventListener('input', formatCostoInput);
-    }
 });
-
-// Formatear input de costo con separadores de miles
-function formatCostoInput(e) {
-    let value = e.target.value.replace(/\D/g, ''); // Solo números
-    if (value) {
-        // Convertir a número y formatear con separadores de miles
-        const numberValue = parseInt(value);
-        e.target.value = numberValue;
-        
-        // Mostrar preview formateado
-        const preview = e.target.parentNode.querySelector('.cost-preview');
-        if (preview) {
-            preview.remove();
-        }
-        
-        if (numberValue > 0) {
-            const formattedValue = numberValue.toLocaleString('es-CL');
-            const previewElement = document.createElement('small');
-            previewElement.className = 'cost-preview';
-            previewElement.style.color = '#0D47A1';
-            previewElement.style.fontSize = '12px';
-            previewElement.style.fontWeight = 'bold';
-            previewElement.textContent = `Formato: $${formattedValue}`;
-            e.target.parentNode.appendChild(previewElement);
-        }
-    }
-}
-
-// Cargar datos demo
-function loadDemoData() {
-    allServicios = demoServicios;
-    currentServicios = demoServicios;
-    displayServicios(demoServicios);
-}
 
 // Establecer fecha mínima para agendamiento (solo fechas futuras)
 function setMinDateTime() {
@@ -172,6 +77,8 @@ function updateUIForLoggedUser() {
     if (description) {
         description.insertAdjacentElement('afterend', userInfo);
     }
+    
+    addUserStyles();
 }
 
 // Actualizar UI para usuario invitado
@@ -194,6 +101,8 @@ function updateUIForGuest() {
     if (description) {
         description.insertAdjacentElement('afterend', loginPrompt);
     }
+    
+    addGuestStyles();
 }
 
 // Ir a login
@@ -245,9 +154,10 @@ async function fetchAPI(endpoint, options = {}) {
 async function loadAllServicios() {
     try {
         showLoading();
-        // En modo demo, usar datos locales
-        displayServicios(allServicios);
-        currentServicios = allServicios;
+        const servicios = await fetchAPI('');
+        allServicios = servicios;
+        currentServicios = servicios;
+        displayServicios(servicios);
         hideError();
     } catch (error) {
         showError('Error al cargar los servicios');
@@ -258,9 +168,9 @@ async function loadAllServicios() {
 async function loadServiciosByEstado(estado) {
     try {
         showLoading();
-        const filtered = allServicios.filter(s => s.estado === estado);
-        displayServicios(filtered);
-        currentServicios = filtered;
+        const servicios = await fetchAPI(`/estado/${estado}`);
+        currentServicios = servicios;
+        displayServicios(servicios);
         hideError();
     } catch (error) {
         showError('Error al cargar los servicios por estado');
@@ -269,7 +179,7 @@ async function loadServiciosByEstado(estado) {
 
 // Buscar servicios
 async function searchServicios() {
-    const query = document.getElementById('searchInput').value.trim().toLowerCase();
+    const query = document.getElementById('searchInput').value.trim();
     if (!query) {
         loadAllServicios();
         return;
@@ -277,17 +187,9 @@ async function searchServicios() {
 
     try {
         showLoading();
-        const filtered = allServicios.filter(servicio => 
-            servicio.nombreCliente.toLowerCase().includes(query) ||
-            servicio.email.toLowerCase().includes(query) ||
-            servicio.tipoDispositivo.toLowerCase().includes(query) ||
-            servicio.marca.toLowerCase().includes(query) ||
-            servicio.modelo.toLowerCase().includes(query) ||
-            servicio.descripcionProblema.toLowerCase().includes(query)
-        );
-        
-        displayServicios(filtered);
-        currentServicios = filtered;
+        const servicios = await fetchAPI(`/buscar?q=${encodeURIComponent(query)}`);
+        currentServicios = servicios;
+        displayServicios(servicios);
         hideError();
     } catch (error) {
         showError('Error al buscar servicios');
@@ -400,7 +302,7 @@ function createServicioCard(servicio) {
                 ${servicio.costoEstimado ? `
                 <div class="service-cost">
                     <i class="fas fa-dollar-sign"></i>
-                    <strong>Costo estimado:</strong> $${servicio.costoEstimado.toLocaleString('es-CL')}
+                    <strong>Costo estimado:</strong> $${servicio.costoEstimado.toLocaleString()}
                 </div>
                 ` : ''}
                 ${actionButtons}
@@ -474,11 +376,6 @@ function closeModal(modalId) {
             const form = document.getElementById('newServiceForm');
             if (form) {
                 form.reset();
-                // Limpiar preview de costo
-                const preview = form.querySelector('.cost-preview');
-                if (preview) {
-                    preview.remove();
-                }
             }
         }
     }
@@ -489,10 +386,7 @@ function handleNewServiceSubmit(e) {
     e.preventDefault();
     
     const formData = new FormData(e.target);
-    const costoEstimado = formData.get('costoEstimado');
-    
     const serviceData = {
-        id: allServicios.length + 1,
         nombreCliente: formData.get('nombreCliente'),
         telefono: formData.get('telefono'),
         email: formData.get('email'),
@@ -500,20 +394,31 @@ function handleNewServiceSubmit(e) {
         marca: formData.get('marca'),
         modelo: formData.get('modelo'),
         descripcionProblema: formData.get('descripcionProblema'),
-        fechaAgendada: formData.get('fechaAgendada'),
-        fechaCreacion: new Date().toISOString(),
-        estado: 'AGENDADO',
-        prioridad: formData.get('prioridad') || 'NORMAL',
-        tecnicoAsignado: formData.get('tecnicoAsignado') || null,
-        costoEstimado: costoEstimado ? parseInt(costoEstimado) : null,
-        diasTranscurridos: 0
+        fechaAgendada: new Date(formData.get('fechaAgendada')).toISOString()
     };
 
-    allServicios.push(serviceData);
-    showError('¡Servicio agendado exitosamente!', true);
-    closeModal('newServiceModal');
-    loadAllServicios();
-    loadStatistics();
+    createNewServicio(serviceData);
+}
+
+// Crear nuevo servicio
+async function createNewServicio(serviceData) {
+    try {
+        showLoading();
+        const response = await fetchAPI('', {
+            method: 'POST',
+            body: JSON.stringify(serviceData)
+        });
+
+        if (response.success) {
+            showError('¡Servicio agendado exitosamente!', true);
+            closeModal('newServiceModal');
+            loadAllServicios();
+        } else {
+            showError(response.message);
+        }
+    } catch (error) {
+        showError('Error al agendar servicio');
+    }
 }
 
 // Consultar servicios por email
@@ -525,7 +430,7 @@ async function consultarPorEmail() {
     }
 
     try {
-        const servicios = allServicios.filter(s => s.email.toLowerCase().includes(email.toLowerCase()));
+        const servicios = await fetchAPI(`/cliente/${encodeURIComponent(email)}`);
         const resultadosDiv = document.getElementById('resultadosConsulta');
         
         if (!resultadosDiv) return;
@@ -546,7 +451,6 @@ async function consultarPorEmail() {
                         ${getEstadoBadge(servicio.estado)}
                     </div>
                     <p><strong>Problema:</strong> ${servicio.descripcionProblema}</p>
-                    ${servicio.costoEstimado ? `<p><strong>Costo estimado:</strong> ${servicio.costoEstimado.toLocaleString('es-CL')}</p>` : ''}
                     <div class="consulta-dates">
                         <span><i class="fas fa-calendar"></i> Agendado: ${new Date(servicio.fechaAgendada).toLocaleString('es-CL')}</span>
                         ${servicio.tecnicoAsignado ? `<span><i class="fas fa-user-cog"></i> Técnico: ${servicio.tecnicoAsignado}</span>` : ''}
@@ -578,12 +482,16 @@ async function cambiarEstado(servicioId) {
     if (!nuevoEstado) return;
 
     try {
-        const servicio = allServicios.find(s => s.id === servicioId);
-        if (servicio) {
-            servicio.estado = nuevoEstado.toUpperCase();
+        const response = await fetchAPI(`/${servicioId}/estado`, {
+            method: 'PUT',
+            body: JSON.stringify({ estado: nuevoEstado.toUpperCase() })
+        });
+
+        if (response.success) {
             showError('Estado actualizado exitosamente', true);
-            displayServicios(currentServicios);
-            loadStatistics();
+            loadAllServicios();
+        } else {
+            showError(response.message);
         }
     } catch (error) {
         showError('Error al cambiar estado');
@@ -607,27 +515,21 @@ Modelo: ${servicio.modelo}
 
 Problema: ${servicio.descripcionProblema}
 
-Estado: ${servicio.estado}
+Estado: ${servicio.estadoDescripcion}
 Prioridad: ${servicio.prioridad}
 
 Fecha Agendada: ${new Date(servicio.fechaAgendada).toLocaleString('es-CL')}
 Días Transcurridos: ${servicio.diasTranscurridos}
 
 ${servicio.tecnicoAsignado ? `Técnico Asignado: ${servicio.tecnicoAsignado}` : 'Sin técnico asignado'}
-${servicio.costoEstimado ? `Costo Estimado: ${servicio.costoEstimado.toLocaleString('es-CL')}` : 'Sin costo estimado'}
+${servicio.costoEstimado ? `Costo Estimado: $${servicio.costoEstimado.toLocaleString()}` : ''}
 ${servicio.observaciones ? `Observaciones: ${servicio.observaciones}` : ''}`);
 }
 
 // Cargar estadísticas
 async function loadStatistics() {
     try {
-        const stats = {
-            totalServicios: allServicios.length,
-            serviciosAgendados: allServicios.filter(s => s.estado === 'AGENDADO').length,
-            serviciosEnReparacion: allServicios.filter(s => s.estado === 'EN_REPARACION').length,
-            serviciosCompletados: allServicios.filter(s => s.estado === 'COMPLETADO').length,
-            totalTecnicos: 5
-        };
+        const stats = await fetchAPI('/estadisticas');
         displayStatistics(stats);
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
@@ -718,5 +620,62 @@ if (searchInput) {
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
         event.target.style.display = 'none';
+    }
+}
+
+// Agregar estilos para usuarios
+function addUserStyles() {
+    if (!document.querySelector('#user-info-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'user-info-styles';
+        styles.textContent = `
+            .user-info {
+                margin-top: 20px;
+                padding: 15px;
+                background: rgba(40, 167, 69, 0.1);
+                border-radius: 15px;
+                border: 2px solid rgba(40, 167, 69, 0.2);
+            }
+            
+            .user-welcome {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+            
+            .user-welcome span {
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: #28a745;
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+}
+
+// Agregar estilos para invitados
+function addGuestStyles() {
+    if (!document.querySelector('#login-prompt-styles')) {
+        const styles = document.createElement('style');
+        styles.id = 'login-prompt-styles';
+        styles.textContent = `
+            .login-prompt {
+                margin-top: 20px;
+                padding: 15px;
+                background: rgba(0, 123, 255, 0.1);
+                border-radius: 15px;
+                border: 2px solid rgba(0, 123, 255, 0.2);
+                text-align: center;
+            }
+            
+            .guest-actions p {
+                margin-bottom: 15px;
+                color: #495057;
+                font-size: 1rem;
+            }
+        `;
+        document.head.appendChild(styles);
     }
 }
