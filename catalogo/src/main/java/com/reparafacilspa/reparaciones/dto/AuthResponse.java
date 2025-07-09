@@ -1,8 +1,6 @@
 package com.reparafacilspa.reparaciones.dto;
 
-import com.reparafacilspa.reparaciones.model.User;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -47,7 +45,9 @@ public class AuthResponse {
         private String apellido;
         
         @Schema(description = "Nombre completo", example = "Administrador Sistema")
-        private String nombreCompleto;
+        public String getNombreCompleto() {
+            return nombre + " " + apellido;
+        }
         
         @Schema(description = "Teléfono", example = "+56912345678")
         private String telefono;
@@ -57,26 +57,13 @@ public class AuthResponse {
         
         @Schema(description = "Estado activo del usuario", example = "true")
         private Boolean activo;
-
-        public UserInfo(User user) {
-            this.id = user.getId();
-            this.username = user.getUsername();
-            this.email = user.getEmail();
-            this.nombre = user.getNombre();
-            this.apellido = user.getApellido();
-            this.nombreCompleto = user.getNombreCompleto();
-            this.telefono = user.getTelefono();
-            this.rol = user.getRol().name();
-            this.activo = user.getActivo();
-        }
     }
 
-    // Constructor para respuesta exitosa
-    public static AuthResponse success(User user, String sessionToken) {
-        return new AuthResponse(true, "Login exitoso", new UserInfo(user), sessionToken);
+    // Métodos estáticos para crear respuestas
+    public static AuthResponse success(String message, UserInfo user, String sessionToken) {
+        return new AuthResponse(true, message, user, sessionToken);
     }
 
-    // Constructor para respuesta de error
     public static AuthResponse error(String message) {
         return new AuthResponse(false, message, null, null);
     }

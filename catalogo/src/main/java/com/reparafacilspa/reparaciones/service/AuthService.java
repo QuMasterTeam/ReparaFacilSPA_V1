@@ -66,10 +66,13 @@ public class AuthService {
             user.setUltimoLogin(new Date());
             userRepository.save(user);
 
+            // Crear UserInfo desde User
+            AuthResponse.UserInfo userInfo = convertToUserInfo(user);
+
             // Generar token de sesión simple
             String sessionToken = generateSessionToken();
 
-            return AuthResponse.success(user, sessionToken);
+            return AuthResponse.success("Login exitoso", userInfo, sessionToken);
 
         } catch (Exception e) {
             return AuthResponse.error("Error interno del servidor");
@@ -106,10 +109,13 @@ public class AuthService {
             // Guardar usuario
             User savedUser = userRepository.save(newUser);
 
+            // Crear UserInfo desde User
+            AuthResponse.UserInfo userInfo = convertToUserInfo(savedUser);
+
             // Generar token de sesión
             String sessionToken = generateSessionToken();
 
-            return AuthResponse.success(savedUser, sessionToken);
+            return AuthResponse.success("Usuario registrado exitosamente", userInfo, sessionToken);
 
         } catch (Exception e) {
             return AuthResponse.error("Error al registrar usuario: " + e.getMessage());
@@ -143,11 +149,6 @@ public class AuthService {
         }
     }
 
-    // Generar token de sesión simple
-    private String generateSessionToken() {
-        return UUID.randomUUID().toString() + "-" + System.currentTimeMillis();
-    }
-
     // Cambiar contraseña
     public AuthResponse changePassword(String username, String oldPassword, String newPassword) {
         try {
@@ -168,10 +169,29 @@ public class AuthService {
             user.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(user);
 
-            return AuthResponse.success(user, null);
+            return AuthResponse.success("Contraseña actualizada exitosamente", null, null);
 
         } catch (Exception e) {
             return AuthResponse.error("Error al cambiar contraseña");
         }
+    }
+
+    // Método helper para convertir User a UserInfo
+    private AuthResponse.UserInfo convertToUserInfo(User user) {
+        AuthResponse.UserInfo userInfo = new AuthResponse.UserInfo();
+        userInfo.setId(user.getId());
+        userInfo.setUsername(user.getUsername());
+        userInfo.setEmail(user.getEmail());
+        userInfo.setNombre(user.getNombre());
+        userInfo.setApellido(user.getApellido());
+        userInfo.setTelefono(user.getTelefono());
+        userInfo.setRol(user.getRol().name());
+        userInfo.setActivo(user.getActivo());
+        return userInfo;
+    }
+
+    // Generar token de sesión simple
+    private String generateSessionToken() {
+        return UUID.randomUUID().toString() + "-" + System.currentTimeMillis();
     }
 }
